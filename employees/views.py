@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
@@ -7,8 +8,16 @@ from .models import Employee
 
 # Create your views here.
 def search_employees(request):
-    employees = Employee.objects.all().order_by('-id')
-    # print(employees)
+    position = request.GET.get('position_title')
+    branch_office = request.GET.get('branch_office_title')
+    if position and branch_office:
+        employees = Employee.objects.filter(Q(position=position) & Q(branch_office=branch_office))
+    elif position:
+        employees = Employee.objects.filter(position=position)
+    elif branch_office:
+        employees = Employee.objects.filter(branch_office=branch_office)
+    else:
+        employees = Employee.objects.all().order_by('-id')
     paginator = Paginator(employees, 50)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

@@ -7,6 +7,29 @@
 
 <body>
     {% block content %}
+
+        <a href="/api/add_employee"><button>Добавить сотрудника</button></a>
+
+        <h2>Отфильтровать поиск по сотрудникам</h2>
+        <form action="/api/search" target="_blank">
+            <div>
+                <div>
+                    <label>Филиал</label>
+                    <input type="text" class="form-control search-field"
+                    name="branch_office_title" placeholder="Введите название филиала">
+                </div>
+                <div>
+                    <label>Должность</label>
+                    <input type="text" class="form-control search-field"
+                    name="position_title" placeholder="Введите искомую должность">
+                </div>
+            </div>
+            <div class="button1">
+                <button class="btn btn-success" type="submit" id="submit_btn">
+                    Поиск (результат в новой вкладке)
+                </button>
+            </div>
+        </form>
         {% for emp in page_obj %}
         <div class="sekta">
             <div class="panel panel-default">
