@@ -24,3 +24,12 @@ class EmployeeForm(forms.Form):
         employee = Employee(branch_office=self.cleaned_data['branch_office'],fio=self.cleaned_data['fio'],position=self.cleaned_data['position'],
             birthday=self.cleaned_data['birthday'],hire_day=self.cleaned_data['hire_day'],salary=self.cleaned_data['salary'])
         employee.save()
+
+    def save_changed(self,emp):
+        emp.branch_office=self.cleaned_data['branch_office']
+        emp.fio=self.cleaned_data['fio']
+        emp.position=self.cleaned_data['position']
+        emp.birthday=self.cleaned_data['birthday']
+        emp.hire_day=self.cleaned_data['hire_day']
+        emp.salary=self.cleaned_data['salary']
+        emp.save()

@@ -34,7 +34,7 @@
         <div class="sekta">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">{{ emp.fio }} ({{ emp.position }}, {{ emp.branch_office }})</h3>
+                    <h3 class="panel-title">{{ emp.fio }} ({{ emp.position }}, {{ emp.branch_office }})</h3> <a href="/api/change_employee/{{ emp.id }}"><button>Изменить</button></a> <a href="/api/delete_employee?emp={{ emp.id }}"><button>Удалить</button></a>
                 </div>
             </div>
         </div>
