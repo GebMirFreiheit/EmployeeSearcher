@@ -9,7 +9,10 @@
     {% block content %}
 
         <a href="/api/add_employee"><button>Добавить сотрудника</button></a>
-
+        <div>
+            <a href="/api/download_excel"><button>Выгрузить базу данных в xlsx</button></a>
+        </div>
+        
         <h2>Отфильтровать поиск по сотрудникам</h2>
         <form action="/api/search" target="_blank">
             <div>

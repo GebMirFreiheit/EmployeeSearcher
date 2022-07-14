@@ -2,6 +2,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
+from io import BytesIO
+import pandas as pd
 
 from .forms import EmployeeForm
 from .models import Employee
@@ -58,3 +60,21 @@ def delete_employee(request):
     emp = get_object_or_404(Employee,pk=emp_id)
     emp.delete()
     return HttpResponse(content='Сотрудник был успешно удален',status=200)
+
+def download_excel(request):
+    d = Employee.objects.all().values()
+    df = pd.DataFrame(data=d)
+    df = df.rename(columns={'branch_office':'Филиал','fio':'ФИО','position':'Должность','birthday':'Дата рождения','hire_day':'Дата приема на работу',
+        'salary':'Зарплата'})
+    excel_file = BytesIO()
+
+    xlwriter = pd.ExcelWriter(excel_file, engine='xlsxwriter')
+    df.to_excel(xlwriter, index=False)
+    xlwriter.save()
+
+    excel_file.seek(0)
+
+    response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=employees.xlsx'
+
+    return response
