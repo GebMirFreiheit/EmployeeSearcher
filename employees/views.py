@@ -4,6 +4,9 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from io import BytesIO
 import pandas as pd
+import httplib2
+import apiclient.discovery
+from oauth2client.service_account import ServiceAccountCredentials
 
 from .forms import EmployeeForm
 from .models import Employee
@@ -78,3 +81,40 @@ def download_excel(request):
     response['Content-Disposition'] = 'attachment; filename=employees.xlsx'
 
     return response
+
+def create_google_sheet(request):
+    employees = Employee.objects.all().values()
+    row_amount = len(employees)+1
+    credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', ['https://www.googleapis.com/auth/spreadsheets',
+                                                                                  'https://www.googleapis.com/auth/drive'])
+    httpAuth = credentials.authorize(httplib2.Http())
+    service = apiclient.discovery.build('sheets', 'v4', http = httpAuth)
+
+    spreadsheet = service.spreadsheets().create(body = {
+        'properties': {'title': 'Сотрудники', 'locale': 'ru_RU'},
+        'sheets': [{'properties': {'sheetType': 'GRID',
+                                'sheetId': 0,
+                                'title': 'Лист1',
+                                'gridProperties': {'rowCount': row_amount, 'columnCount': 7}}}]
+    }).execute()
+
+    print(spreadsheet['spreadsheetUrl'])
+
+    driveService = apiclient.discovery.build('drive', 'v3', http = httpAuth)
+    shareRes = driveService.permissions().create(
+        fileId = spreadsheet['spreadsheetId'],
+        body = {'type': 'anyone', 'role': 'reader'},  # доступ на чтение по ссылке
+        fields = 'id'
+    ).execute()
+
+    data = [{"range": "Лист1!A1:G1",
+            "values": [['id','Филиал','ФИО','Должность','Дата рождения','Дата приема на работу','Зарплата']]}]
+    for i in range(2,row_amount+1):
+        data.append({"range": f"Лист1!A{i}:G{i}","majorDimension": "ROWS","values": [[employees[i-2]['id'],employees[i-2]['branch_office'],employees[i-2]['fio'],
+            employees[i-2]['position'],str(employees[i-2]['birthday']),str(employees[i-2]['hire_day']),employees[i-2]['salary']]]})
+    results = service.spreadsheets().values().batchUpdate(spreadsheetId = spreadsheet['spreadsheetId'], body = {
+        "valueInputOption": "USER_ENTERED",
+        "data": data
+    }).execute()
+
+    return HttpResponse(status=200,content='Таблица создана по ссылке '+spreadsheet['spreadsheetUrl'])
